@@ -186,7 +186,7 @@ class LoRAModelRunnerMixin:
             if not lora_config.specialize_active_lora:
                 effective_num_loras = max_loras
                 prompt_lora_mapping = (
-                    np.arange(num_reqs, dtype=np.int32) % max_loras
+                    np.arange(num_reqs, dtype=np.int32) % effective_num_loras
                 ) + 1
             elif effective_num_loras > 0:
                 if include_no_lora:
