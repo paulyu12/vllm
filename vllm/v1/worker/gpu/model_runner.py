@@ -17,6 +17,9 @@ hidden. Prefer utility functions defined elsewhere and call them from here,
 instead of embedding feature-specific logic directly.
 """
 
+import bisect
+from vllm.lora.utils import get_captured_lora_counts
+
 import functools
 import gc
 import time
@@ -1073,9 +1076,23 @@ class GPUModelRunner(LoRAModelRunnerMixin):
             model_output = self.cudagraph_manager.run_fullgraph(batch_desc)
         else:
             # For piecewise and eager mode, just call model().
+            num_active_loras = 0
+            if self.lora_config and not dummy_run:
+                actual_count = len(lora_inputs[2])  # type: ignore[union-attr]
+                captured_counts = get_captured_lora_counts(
+                    self.lora_config.max_loras,
+                    self.lora_config.specialize_active_lora,
+                )
+                idx = bisect.bisect_left(captured_counts, actual_count)
+                num_active_loras = (
+                    captured_counts[idx]
+                    if idx < len(captured_counts)
+                    else captured_counts[-1]
+                )
             batch_descriptor = BatchDescriptor(
                 num_tokens=input_batch.num_tokens_after_padding,
                 has_lora=self.lora_config is not None,
+                num_active_loras=num_active_loras,
             )
 
             with set_forward_context(
