@@ -333,7 +333,11 @@ class ModelCudaGraphManager(CudaGraphManager):
 
                 def _run(num_active_loras: int) -> None:
                     batch_descriptor = (
-                        BatchDescriptor(num_tokens=num_tokens)
+                        BatchDescriptor(
+                            num_tokens=num_tokens,
+                            has_lora=num_active_loras > 0,
+                            num_active_loras=num_active_loras,
+                        )
                         if cg_mode == CUDAGraphMode.PIECEWISE
                         else None
                     )
@@ -380,13 +384,12 @@ class ModelCudaGraphManager(CudaGraphManager):
                         for k, v in intermediate_tensors.tensors.items():
                             self.intermediate_tensors[k][:num_tokens] = v
 
+                _run(0)
                 if cg_mode == CUDAGraphMode.PIECEWISE and lora_config is not None:
                     for lora_count in get_captured_lora_counts(
                         lora_config.max_loras, lora_config.specialize_active_lora
                     ):
                         _run(lora_count)
-                else:
-                    _run(0)
 
             return forward_fn
 

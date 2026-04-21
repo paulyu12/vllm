@@ -1078,7 +1078,8 @@ class GPUModelRunner(LoRAModelRunnerMixin):
             # For piecewise and eager mode, just call model().
             num_active_loras = 0
             if self.lora_config and not dummy_run:
-                actual_count = len(lora_inputs[2])  # type: ignore[union-attr]
+                assert lora_inputs is not None
+                actual_count = len(lora_inputs[2])
                 if actual_count > 0:
                     captured_counts = get_captured_lora_counts(
                         self.lora_config.max_loras,
@@ -1092,7 +1093,7 @@ class GPUModelRunner(LoRAModelRunnerMixin):
                     )
             batch_descriptor = BatchDescriptor(
                 num_tokens=input_batch.num_tokens_after_padding,
-                has_lora=self.lora_config is not None,
+                has_lora=num_active_loras > 0,
                 num_active_loras=num_active_loras,
             )
 
