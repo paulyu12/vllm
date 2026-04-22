@@ -18,8 +18,6 @@ instead of embedding feature-specific logic directly.
 """
 
 import bisect
-from vllm.lora.utils import get_captured_lora_counts
-
 import functools
 import gc
 import time
@@ -39,6 +37,7 @@ from vllm.distributed.parallel_state import (
 )
 from vllm.forward_context import BatchDescriptor, set_forward_context
 from vllm.logger import init_logger
+from vllm.lora.utils import get_captured_lora_counts
 from vllm.model_executor.layers.mamba.ops.ssu_dispatch import (
     initialize_mamba_ssu_backend,
 )

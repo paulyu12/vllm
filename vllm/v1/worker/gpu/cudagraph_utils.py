@@ -18,6 +18,7 @@ from vllm.distributed.parallel_state import (
 )
 from vllm.forward_context import BatchDescriptor, set_forward_context
 from vllm.logger import init_logger
+from vllm.lora.utils import get_captured_lora_counts
 from vllm.model_executor.offloader.base import get_offloader
 from vllm.platforms import current_platform
 from vllm.sequence import IntermediateTensors
@@ -28,8 +29,6 @@ from vllm.v1.worker.gpu.cp_utils import prepare_dcp_local_seq_lens
 from vllm.v1.worker.gpu.input_batch import InputBatch, InputBuffers
 from vllm.v1.worker.gpu.model_states.interface import ModelState
 from vllm.v1.worker.utils import AttentionGroup
-
-from vllm.lora.utils import get_captured_lora_counts
 
 logger = init_logger(__name__)
 
@@ -367,7 +366,10 @@ class ModelCudaGraphManager(CudaGraphManager):
                         if self.hidden_states is None:
                             self.hidden_states = torch.empty_like(hidden_states)
                         self.hidden_states[:num_tokens] = hidden_states
-                        if self.use_aux_hidden_state_outputs and not self.aux_hidden_states:
+                        if (
+                            self.use_aux_hidden_state_outputs
+                            and not self.aux_hidden_states
+                        ):
                             self.aux_hidden_states = [
                                 torch.empty_like(x) for x in aux_hidden_states
                             ]
